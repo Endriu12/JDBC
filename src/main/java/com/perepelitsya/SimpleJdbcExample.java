@@ -36,6 +36,8 @@ public class SimpleJdbcExample {
         connection = DriverManager.getConnection(DATABASE_URL, USER, PASSWORD);
 
 
+        //we turn off auto commit, then we can use transaction when we need her
+        connection.setAutoCommit(false);
 
 
         System.out.println("Creating statment who add us simple method for use db");
@@ -45,6 +47,11 @@ public class SimpleJdbcExample {
         String sql = "Select * FROM user";
 
         ResultSet resultSet = statement.executeQuery(sql);
+
+        Savepoint savepointOne = connection.setSavepoint("SavepointOne");
+
+
+
 
         while(resultSet.next()){
             int id = resultSet.getInt("id");
@@ -60,6 +67,36 @@ public class SimpleJdbcExample {
 
         }
 
+
+
+        try {
+            sql = "INSERT INTO developer VALUES (6, 'John','C#', 2200)";
+            statement.executeUpdate(sql);
+
+            sql = "INSE INTHE developers VALUES (7, 'Ron', 'Ruby', 1900)";
+            statement.executeUpdate(sql);
+
+            connection.commit();
+        } catch (SQLException e) {
+            System.out.println("SQLException. Executing rollback to savepoint...");
+            connection.rollback(savepointOne);
+        }
+
+        resultSet = statement.executeQuery("Select * FROM user");
+
+        while(resultSet.next()){
+            int id = resultSet.getInt("id");
+            String name = resultSet.getString("name");
+            String specialty = resultSet.getString("specialty");
+            int salary = resultSet.getInt("salary");
+
+            System.out.println("\n================\n");
+            System.out.println("id: " + id);
+            System.out.println("Name: " + name);
+            System.out.println("Specialty: " + specialty);
+            System.out.println("Salary: $" + salary);
+
+        }
 
         System.out.println("Close all");
 
